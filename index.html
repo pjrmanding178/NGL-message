@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NGL Box</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f4f8;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Container Styling */
+        .container {
+            position: relative;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Title Styling */
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+
+        /* Form Inputs */
+        input[type="text"], textarea {
+            width: 100%;
+            font-size: 16px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        textarea {
+            height: 100px;
+            resize: none;
+        }
+
+        /* Submit Button */
+        button {
+            width: 100%;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Image Styling */
+        .image-container {
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            max-width: 100px;
+            height: auto;
+        }
+
+        .image-container p {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+
+        /* Dark Mode Styling */
+        body.dark {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .container.dark {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            border-color: #333;
+        }
+
+        .container.dark h1 {
+            color: #ffffff;
+        }
+
+        .container.dark input,
+        .container.dark textarea {
+            background-color: #2a2a2a;
+            color: #ffffff;
+            border-color: #555;
+        }
+
+        .container.dark .image-container p {
+            color: #ffffff;
+        }
+
+        /* Dark Mode Button Container */
+        .dark-mode-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Dark Mode Button */
+        .dark-mode-toggle {
+            background-color: transparent;
+            color: #333;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 30px;
+            width: 30px;
+            border-radius: 50%;
+            transition: color 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            color: #007bff;
+        }
+
+        .dark-mode-toggle.dark {
+            color: #ffffff;
+        }
+
+        /* Mode Text */
+        .dark-mode-text {
+            font-size: 12px;
+            color: #777575;
+            transition: color 0.3s ease;
+        }
+
+        .dark-mode-text.dark {
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <!-- Dark Mode Container -->
+        <div class="dark-mode-container">
+            <span id="darkModeText" class="dark-mode-text">Dark Mode</span>
+            <button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">☀️</button>
+        </div>
+
+        <h1>Send an Anonymous Message</h1>
+        
+        <!-- Image Section -->
+        <div class="image-container">
+            <img src="images__4_-removebg-preview (2).png" alt="Pointing Gun Image">
+            <p>Mag memessage ka o hindi?</p>
+        </div>
+
+        <form id="nglForm" onsubmit="submitMessage(event)">
+            <!-- Name Input -->
+            <input type="text" id="name" placeholder="Your Name" required>
+
+            <!-- Message Textarea -->
+            <textarea id="message" placeholder="Write your message here..." required></textarea>
+
+            <!-- Submit Button -->
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        function submitMessage(event) {
+            event.preventDefault(); // Prevent form from reloading the page
+
+            // Get input values
+            const name = document.getElementById('name').value.trim();
+            const message = document.getElementById('message').value.trim();
+
+            if (!name || !message) {
+                alert('Please fill out all required fields.');
+                return;
+            }
+
+            // Store the message in localStorage
+            const messages = JSON.parse(localStorage.getItem('nglMessages')) || [];
+            const messageData = { name, message };
+            messages.push(messageData);
+            localStorage.setItem('nglMessages', JSON.stringify(messages));
+
+            alert('Your message has been submitted successfully!');
+
+            // Clear form
+            document.getElementById('nglForm').reset();
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            const body = document.body;
+            const container = document.getElementById('container');
+            const toggleButton = document.getElementById('darkModeToggle');
+            const darkModeText = document.getElementById('darkModeText');
+
+            // Toggle dark mode class
+            body.classList.toggle('dark');
+            container.classList.toggle('dark');
+
+            // Change button icon and text
+            if (body.classList.contains('dark')) {
+                toggleButton.textContent = '🌙'; // Moon icon
+                darkModeText.textContent = 'Light Mode'; // Light mode text
+            } else {
+                toggleButton.textContent = '☀️'; // Sun icon
+                darkModeText.textContent = 'Dark Mode'; // Dark mode text
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - NGL Messages</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        header {
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            background-color: #007bff;
+            color: #fff;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fff;
+            margin-bottom: 10px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        li:hover {
+            transform: scale(1.02);
+        }
+        li span {
+            flex: 1;
+            margin-left: 10px;
+        }
+        .no-messages {
+            text-align: center;
+            font-size: 18px;
+            color: #666;
+            margin-top: 50px;
+        }
+        button {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button.delete {
+            background-color: #ff4d4d;
+            color: #fff;
+        }
+        button.delete:hover {
+            background-color: #cc0000;
+        }
+        button.clear-all {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+        }
+        button.clear-all:hover {
+            background-color: #0056b3;
+        }
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s;
+        }
+        .modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        .modal-content h2 {
+            margin: 0 0 10px;
+        }
+        .modal-content p {
+            margin: 10px 0;
+        }
+        .modal-content .delete-btn {
+            margin-top: 20px;
+            background-color: #ff4d4d;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .modal-content .delete-btn:hover {
+            background-color: #cc0000;
+        }
+        .modal-content .close-btn {
+            margin-top: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .modal-content .close-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Admin - Anonymous Messages</h1>
+    </header>
+    <main>
+        <ul id="messageList"></ul>
+        <button class="clear-all" onclick="clearMessages()">Clear All Messages</button>
+    </main>
+
+    <!-- Modal for Viewing Message -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2>
+            <p id="modalMessage"></p>
+            <button class="delete-btn" onclick="deleteCurrentMessage()">Delete</button>
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let currentMessageIndex = null;
+
+        // Function to load messages from localStorage
+        function loadMessages() {
+            const messages = JSON.parse(localStorage.getItem('nglMessages')) || [];
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = '';
+            if (messages.length === 0) {
+                messageList.innerHTML = '<div class="no-messages">No messages found. Messages submitted will appear here.</div>';
+                return;
+            }
+            messages.forEach((messageData, index) => {
+                const listItem = document.createElement('li');
+
+                listItem.innerHTML = `
+                    <strong>${messageData.name}</strong>
+                    <span>${messageData.message.slice(0, 50)}...</span>
+                    <button class="delete" onclick="deleteMessage(event, ${index})">Delete</button>
+                `;
+
+                // Open modal when clicking on the list item (not the delete button)
+                listItem.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'BUTTON') {
+                        openModal(messageData, index);
+                    }
+                });
+
+                messageList.appendChild(listItem);
+            });
+        }
+
+        // Function to delete a specific message from the list
+        function deleteMessage(event, index) {
+            event.stopPropagation(); // Prevent triggering the modal opening
+            const messages = JSON.parse(localStorage.getItem('nglMessages')) || [];
+            if (confirm('Are you sure you want to delete this message?')) {
+                messages.splice(index, 1); // Remove message at index
+                localStorage.setItem('nglMessages', JSON.stringify(messages)); // Save updated list
+                loadMessages(); // Reload messages
+            }
+        }
+
+        // Function to open the modal with message details
+        function openModal(messageData, index) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').textContent = `From: ${messageData.name}`;
+            document.getElementById('modalMessage').textContent = `Message: ${messageData.message}`;
+            currentMessageIndex = index; // Store the current message index
+            modal.classList.add('show');
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('show');
+            currentMessageIndex = null; // Reset current message index
+        }
+
+        // Function to delete the current message from the modal
+        function deleteCurrentMessage() {
+            if (currentMessageIndex !== null) {
+                deleteMessage(new Event('click'), currentMessageIndex); // Use the existing deleteMessage function
+                closeModal(); // Close the modal after deleting
+            }
+        }
+
+        // Function to clear all messages
+        function clearMessages() {
+            if (confirm('Are you sure you want to delete all messages?')) {
+                localStorage.removeItem('nglMessages');
+                loadMessages();
+            }
+        }
+
+        // Load messages when the page loads
+        window.onload = loadMessages;
+    </script>
+</body>
+</html>
